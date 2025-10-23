@@ -49,6 +49,8 @@ class MainActivity : ComponentActivity() {
     var clicks by mutableIntStateOf(0)
     var level by mutableIntStateOf(1)
 
+    var price by mutableIntStateOf(10)
+
     val items = listOf("Clicks", "Upgrade")
 
 
@@ -101,9 +103,10 @@ class MainActivity : ComponentActivity() {
                     ClickerScreen()
                 }
                 composable(items[1]){
-                    UpgradeScreen(level, clicks) { clicksN, levelN ->
+                    UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
                         clicks = clicksN
                         level = levelN
+                        price = priceN
                     }
                 }
             }

@@ -24,15 +24,15 @@ import com.xdev.jetpack.utils.InfoCard
 @Preview(showBackground = true)
 @Composable
 fun Preview() {
-    UpgradeScreen(1, 1) { _, _ -> }
+    UpgradeScreen(1, 1, 1) { _, _, _ -> }
 
 }
 
 
 @Composable
-fun UpgradeScreen(levelValue: Int, clicksValue: Int, newValues: (Int, Int) -> Unit) {
+fun UpgradeScreen(levelValue: Int, clicksValue: Int, price: Int, newValues: (Int, Int, Int) -> Unit) {
 
-    var price by remember { mutableIntStateOf(10) }
+    var localPrice by remember { mutableIntStateOf(price) }
 
     var localClicks by remember { mutableIntStateOf(clicksValue) }
 
@@ -44,9 +44,9 @@ fun UpgradeScreen(levelValue: Int, clicksValue: Int, newValues: (Int, Int) -> Un
     val upgrade = {
         if (clicksValue >= price) {
             localClicks = localClicks - price
-            price = price * 2
+            localPrice = price * 2
             localLevel++
-            newValues(localClicks, localLevel)
+            newValues(localClicks, localLevel, localPrice)
         }
     }
 
@@ -71,7 +71,7 @@ fun UpgradeScreen(levelValue: Int, clicksValue: Int, newValues: (Int, Int) -> Un
             }
 
             Text(
-                text = "to upgrade need $price clicks",
+                text = "to upgrade need $localPrice clicks",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
