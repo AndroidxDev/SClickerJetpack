@@ -2,6 +2,7 @@
 
 package com.xdev.jetpack
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -43,6 +44,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.xdev.jetpack.ui.theme.JetpackTheme
+import androidx.core.content.edit
 
 class MainActivity : ComponentActivity() {
 
@@ -53,15 +55,30 @@ class MainActivity : ComponentActivity() {
 
     val items = listOf("Clicks", "Upgrade")
 
-
+    private lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        sharedPreferences = this.getSharedPreferences("data", MODE_PRIVATE)
+
+        clicks = sharedPreferences.getInt("clicks", 0)
+        level = sharedPreferences.getInt("level", 1)
+        price = sharedPreferences.getInt("price", 10)
+
         setContent {
             JetpackTheme {
               ScreenPreview()
             }
+        }
+    }
+
+    fun saveData(){
+        sharedPreferences.edit {
+            putInt("clicks", clicks)
+            putInt("level", level)
+            putInt("price", price)
         }
     }
 
@@ -107,6 +124,7 @@ class MainActivity : ComponentActivity() {
                         clicks = clicksN
                         level = levelN
                         price = priceN
+                        saveData()
                     }
                 }
             }
@@ -133,6 +151,7 @@ class MainActivity : ComponentActivity() {
                 Button(
                     {
                         if (clicks == 0) clicks++ else clicks = clicks + (1 * level)
+                        saveData()
                     },
                     modifier = Modifier.padding(top = 15.dp)
                 ) {
