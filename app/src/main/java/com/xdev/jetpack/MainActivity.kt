@@ -70,6 +70,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             JetpackTheme {
               ScreenPreview()
+              /*  UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
+                    clicks = clicksN
+                    level = levelN
+                    price = priceN } */
             }
         }
     }

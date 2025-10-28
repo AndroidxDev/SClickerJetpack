@@ -1,6 +1,7 @@
 package com.xdev.jetpack
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+//import com.xdev.jetpack.utils.CenterCardAnimation
 import com.xdev.jetpack.utils.InfoCard
 
 
@@ -60,6 +62,7 @@ fun UpgradeScreen(levelValue: Int, clicksValue: Int, price: Int, newValues: (Int
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             InfoCard("Clicks", localClicks)
             InfoCard("Level", localLevel)
+            //CenterCardAnimation()
         }
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
