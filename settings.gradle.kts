@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SClicker"
 include(":app")
+include(":composepreferences")

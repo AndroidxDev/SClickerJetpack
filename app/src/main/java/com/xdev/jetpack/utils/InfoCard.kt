@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,7 +41,7 @@ fun Preview() {
 
 @Composable
 fun InfoCard(title: String, value: Int) {
-    Box(
+    Card(
         modifier = Modifier
             .padding(top = 15.dp, start = 15.dp, end = 15.dp)
             .background(color = Color.Gray, shape = RoundedCornerShape(12.dp))
