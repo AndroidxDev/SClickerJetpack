@@ -347,6 +347,7 @@ fun NewScreen() {
                                             onValueChange = { isLarge = it }
                                         )
                                     }
+
                                 }
                             }
                         }
