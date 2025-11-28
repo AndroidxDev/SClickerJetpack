@@ -44,8 +44,8 @@ object ListPreferenceDefaults {
             DialogItem(value, currentValue, valueToText, onClick)
         }
 }
-
-inline fun <T> LazyListScope.listPreference(
+@Composable
+inline fun <T> listPreference(
     key: String,
     crossinline onValueChange: (T) -> Unit,
     defaultValue: T,
@@ -63,7 +63,7 @@ inline fun <T> LazyListScope.listPreference(
     noinline item: @Composable (value: T, currentValue: T, onClick: () -> Unit) -> Unit =
         ListPreferenceDefaults.item(valueToText),
 ) {
-    item(key = key, contentType = "ListPreference") {
+   // item(key = key, contentType = "ListPreference") {
         val state = rememberState()
         val value by state
         ListPreference(
@@ -79,7 +79,7 @@ inline fun <T> LazyListScope.listPreference(
             valueToText = valueToText,
             item = item,
         )
-    }
+   // }
 }
 
 @Composable

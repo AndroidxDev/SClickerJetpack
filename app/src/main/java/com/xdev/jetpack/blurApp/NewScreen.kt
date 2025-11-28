@@ -20,6 +20,7 @@ import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,8 +50,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.xdev.jetpack.R
+import com.xdev.jetpack.blurApp.preferences.CategoryPreference
+import com.xdev.jetpack.blurApp.preferences.SliderPreference
 import com.xdev.jetpack.blurApp.preferences.SwitchPreference
 import com.xdev.jetpack.blurApp.preferences.listPreference
+import com.xdev.jetpack.blurApp.preferences.sliderPreference
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -59,6 +64,7 @@ import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
+import kotlin.math.roundToInt
 
 object Nav {
     const val HOME = "home"
@@ -105,40 +111,52 @@ fun BottomNavBar(modifier: Modifier, navController: NavController, blurEnable: B
 fun TopBar(
     blurEnable: Boolean,
     gradientBlur: Boolean,
+    isLarge: Boolean,
     hazeState: HazeState,
     blurStyle: HazeStyle,
+    progress: (Float),
+    blurRadius2: (Float),
     topBarHeight: (Int) -> Unit
 ) {
-    TopAppBar(
 
-        colors = if (blurEnable) {
-            TopAppBarDefaults.topAppBarColors(Color.Transparent)
-        } else {
-            TopAppBarDefaults.topAppBarColors(
-                containerColor = BottomAppBarDefaults.containerColor,
-                titleContentColor = MaterialTheme.colorScheme.onSurface
-            )
-        },
-        modifier = Modifier
-            .hazeEffect(
-                state = hazeState,
-                style = blurStyle
-            ) {
-                if (gradientBlur) {
-                    progressive =
-                        HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
-                }
-                blurEnabled = blurEnable
+    val colors = if (blurEnable) {
+        TopAppBarDefaults.topAppBarColors(Color.Transparent)
+    } else {
+        TopAppBarDefaults.topAppBarColors(
+            containerColor = BottomAppBarDefaults.containerColor,
+            titleContentColor = MaterialTheme.colorScheme.onSurface
+        )
+    }
+
+    val modifier = Modifier
+        .hazeEffect(
+            state = hazeState,
+            style = blurStyle
+        ) {
+            if (gradientBlur) {
+                progressive =
+                    HazeProgressive.verticalGradient(
+                        startIntensity = progress,
+                        endIntensity = 0f
+                    )
             }
-            .onGloballyPositioned { topBarHeight(it.size.height) },
-        title = {
-            Row(Modifier.padding(end = 15.dp)) {
-                Text("SClicker")
-                Spacer(modifier = Modifier.weight(1f))
-                Text("Ver: Blur", fontSize = 15.sp)
-            }
+            blurEnabled = blurEnable
+            blurRadius = blurRadius2.dp
         }
-    )
+        .onGloballyPositioned { topBarHeight(it.size.height) }
+
+    val title = @Composable {
+        Row(Modifier.padding(end = 15.dp)) {
+            Text("SClicker")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("Ver: Blur", fontSize = 15.sp)
+        }
+    }
+    if (isLarge) {
+        LargeTopAppBar(colors = colors, modifier = modifier, title = title)
+    } else {
+        TopAppBar(colors = colors, modifier = modifier, title = title)
+    }
 }
 
 @Composable
@@ -193,6 +211,7 @@ fun NewScreen() {
     var blurEnable by remember { mutableStateOf(true) }
     var gradientBlur by remember { mutableStateOf(false) }
 
+    var blurRadius2 by remember { mutableFloatStateOf(20f) }
 
     var blurType by remember { mutableStateOf("Ultra Thin") }
 
@@ -205,6 +224,10 @@ fun NewScreen() {
         else -> HazeStyle.Unspecified
     }
 
+    var isLarge by remember { mutableStateOf(false) }
+
+    var progress by remember { mutableFloatStateOf(0f) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
@@ -215,7 +238,8 @@ fun NewScreen() {
             NavHost(
                 modifier = Modifier.padding(),
                 navController = navController,
-                startDestination = Nav.SETTINGS,
+                // startDestination = Nav.HOME,
+                 startDestination = Nav.SETTINGS,
                 builder = {
                     composable(Nav.HOME) {
                         LazyColumn(
@@ -232,56 +256,105 @@ fun NewScreen() {
                         ProvidePreferenceLocals {
                             LazyColumn(
                                 modifier = Modifier
-                                /*.hazeSource(state = hazeState)*/,
+                                .hazeSource(state = hazeState),
                                 contentPadding = PaddingValues(top = with(density) { topBarHeight.toDp() })
                             ) {
+
                                 item {
-                                    SwitchPreference(
-                                        value = blurEnable,
-                                        title = { Text(text = "Blur enable") },
-                                        //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
-                                        summary = { Text("Enable blur with this app") },
-                                        onValueChange = { newValue ->
-                                            blurEnable = newValue
-                                        }
-                                    )
+                                    CategoryPreference("Blur settings") {
+                                        SwitchPreference(
+                                            value = blurEnable,
+                                            title = { Text(text = "Blur enable") },
+                                            //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
+                                            summary = { Text("Enable blur with this app") },
+                                            onValueChange = { newValue ->
+                                                blurEnable = newValue
+                                            }
+                                        )
+
+                                        sliderPreference(
+                                            key = "slider_preference2",
+                                            enabled = { blurEnable },
+                                            defaultValue = 20f,
+                                            title = { Text(text = "Blur radius") },
+                                            valueRange = 1f..150f,
+                                            //valueSteps = 9,
+                                            summary = { Text(text = "change blur radius") },
+                                            valueText = {
+                                                Text(text = ((it / 0.5f).roundToInt() * 0.5f).toString())
+                                            },
+                                            onValueChange = {
+                                                blurRadius2 = (it)
+                                            }
+                                        )
+
+                                        listPreference(
+                                            enabled = { blurEnable },
+                                            key = "aa",
+                                            onValueChange = {
+                                                blurType = it
+                                            },
+                                            defaultValue = blurType,
+                                            values = listOf(
+                                                "Ultra Thin",
+                                                "Thin",
+                                                "Regular",
+                                                "Thick",
+                                                "Ultra Thick"
+                                            ),
+                                            title = { Text("BlurType") },
+                                            summary = { Text(text = it) }
+                                        )
+                                    }
                                 }
 
                                 item {
-                                    SwitchPreference(
-                                        value = if (blurEnable) gradientBlur else false,
-                                        title = { Text(text = "Gradient blur") },
-                                        summary = { Text("Enable gradient blur on top bar") },
-                                        onValueChange = { newValue ->
-                                            gradientBlur = newValue
-                                        },
-                                        enabled = blurEnable
-                                    )
+                                    CategoryPreference("Gradient blur") {
+                                        SwitchPreference(
+                                            value = if (blurEnable) gradientBlur else false,
+                                            title = { Text(text = "Gradient blur") },
+                                            summary = { Text("Enable gradient blur on top bar") },
+                                            onValueChange = { newValue ->
+                                                gradientBlur = newValue
+                                            },
+                                            enabled = blurEnable
+                                        )
+
+
+                                        sliderPreference(
+                                            key = "slider_preference",
+                                            enabled = { blurEnable and gradientBlur },
+                                            defaultValue = 50f,
+                                            title = { Text(text = "Blur progress2") },
+                                            valueRange = 1f..100f,
+                                            //valueSteps = 9,
+                                            summary = { Text(text = "change blur progress on topbar (only for gradient)") },
+                                            valueText = { Text(text = ((progress / 0.05f).roundToInt() * 0.05f).toString()) },
+                                            onValueChange = {
+                                                progress = (it / 100f)
+                                            }
+                                        )
+                                    }
                                 }
 
-                                listPreference(
-                                    key = "aa",
-                                    onValueChange = {
-                                        blurType = it
-                                    },
-                                    defaultValue = blurType,
-                                    values = listOf(
-                                        "Ultra Thin",
-                                        "Thin",
-                                        "Regular",
-                                        "Thick",
-                                        "Ultra Thick"
-                                    ),
-                                    title = { Text("BlurType") },
-                                    summary = { Text(text = it) }
-                                )
+                                item {
+                                    CategoryPreference("Top Bar") {
+                                        SwitchPreference(
+                                            value = isLarge,
+                                            title = { Text(text = "enable large top bar") },
+                                            //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
+                                            summary = { Text("enable large top bar in this app") },
+                                            onValueChange = { isLarge = it }
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
             )
 
-            TopBar(blurEnable, gradientBlur, hazeState, blurStyle) {
+            TopBar(blurEnable, gradientBlur, isLarge, hazeState, blurStyle, progress, blurRadius2) {
                 topBarHeight = it
             }
 
@@ -291,7 +364,10 @@ fun NewScreen() {
                     .hazeEffect(
                         state = hazeState,
                         style = blurStyle
-                    ) { blurEnabled = blurEnable },
+                    ) {
+                        blurEnabled = blurEnable
+                        blurRadius = blurRadius2.dp
+                      },
                 navController,
                 blurEnable
             )
