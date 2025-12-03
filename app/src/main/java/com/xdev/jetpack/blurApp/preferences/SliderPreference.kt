@@ -23,24 +23,25 @@ import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.rememberPreferenceState
 
 @Composable
-inline fun sliderPreference(
+fun sliderPreference(
     key: String,
     defaultValue: Float,
-    crossinline title: @Composable (Float) -> Unit,
+    title: @Composable (Float) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
-    crossinline rememberState: @Composable () -> MutableState<Float> = {
+     rememberState: @Composable () -> MutableState<Float> = {
         rememberPreferenceState(key, defaultValue)
     },
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     valueSteps: Int = 0,
-    crossinline rememberSliderState: @Composable (Float) -> MutableFloatState = {
+     rememberSliderState: @Composable (Float) -> MutableFloatState = {
         remember { mutableFloatStateOf(it) }
     },
-    crossinline enabled: (Float) -> Boolean = { true },
-    noinline icon: @Composable ((Float) -> Unit)? = null,
-    noinline summary: @Composable ((Float) -> Unit)? = null,
-    noinline valueText: @Composable ((Float) -> Unit)? = null,
-    crossinline onValueChange: (Float) -> Unit
+     enabled: (Float) -> Boolean = { true },
+     icon: @Composable ((Float) -> Unit)? = null,
+     summary: @Composable ((Float) -> Unit)? = null,
+     valueText: @Composable ((Float) -> Unit)? = null,
+     onValueChange: (Float) -> Unit
+
 ) {
    // item(key = key, contentType = "SliderPreference") {
         val state = rememberState()

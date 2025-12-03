@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
@@ -28,7 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import com.xdev.jetpack.blurApp.preferences.ListPreferenceDefaults.item
 import com.xdev.jetpack.blurApp.preferences.extensions.copy
 import me.zhanghai.compose.preference.ListPreferenceType
 import me.zhanghai.compose.preference.LocalPreferenceTheme
@@ -45,25 +43,24 @@ object ListPreferenceDefaults {
         }
 }
 @Composable
-inline fun <T> listPreference(
+fun <T> listPreference(
     key: String,
-    crossinline onValueChange: (T) -> Unit,
+    onValueChange: (T) -> Unit,
     defaultValue: T,
     values: List<T>,
-    crossinline title: @Composable (T) -> Unit,
+    title: @Composable (T) -> Unit,
     modifier: Modifier = Modifier.fillMaxWidth(),
-    crossinline rememberState: @Composable () -> MutableState<T> = {
+    rememberState: @Composable () -> MutableState<T> = {
         rememberPreferenceState(key, defaultValue)
     },
-    crossinline enabled: (T) -> Boolean = { true },
-    noinline icon: @Composable ((T) -> Unit)? = null,
-    noinline summary: @Composable ((T) -> Unit)? = null,
+    enabled: (T) -> Boolean = { true },
+    icon: @Composable ((T) -> Unit)? = null,
+    summary: @Composable ((T) -> Unit)? = null,
     type: ListPreferenceType = ListPreferenceType.ALERT_DIALOG,
-    noinline valueToText: (T) -> AnnotatedString = { AnnotatedString(it.toString()) },
-    noinline item: @Composable (value: T, currentValue: T, onClick: () -> Unit) -> Unit =
+    valueToText: (T) -> AnnotatedString = { AnnotatedString(it.toString()) },
+    item: @Composable (value: T, currentValue: T, onClick: () -> Unit) -> Unit =
         ListPreferenceDefaults.item(valueToText),
 ) {
-   // item(key = key, contentType = "ListPreference") {
         val state = rememberState()
         val value by state
         ListPreference(
@@ -79,7 +76,6 @@ inline fun <T> listPreference(
             valueToText = valueToText,
             item = item,
         )
-   // }
 }
 
 @Composable

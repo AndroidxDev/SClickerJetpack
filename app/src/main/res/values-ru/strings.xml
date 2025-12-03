@@ -2,5 +2,18 @@
 <resources>
     <string name="app_name">Jetpack</string>
     <string name="clickBtn">Клик!</string>
-
+    <!-- //BlurApp -->
+    <string name="blur_settings">Настройка блюра</string>
+    <string name="blur_enable">Включить размытие</string>
+    <string name="enable_blur_with_this_app">Включить размытие с помощью этого приложения</string>
+    <string name="blur_radius">Радиус размытия</string>
+    <string name="change_blur_radius">изменить радиус размытия</string>
+    <string name="blurtype">Тип размытия</string>
+    <string name="gradient_blur">Градиентное размытие</string>
+    <string name="enable_gradient_blur_on_top_bar">Включить градиентное размытие на верхней панели</string>
+    <string name="blur_progress">сила размытия</string>
+    <string name="change_blur_progress_on_topbar_only_for_gradient">изменение хода размытия на верхней панели (только для градиента)</string>
+    <string name="top_bar">Верхняя панель</string>
+    <string name="enable_large_top_bar">включить большую верхнюю панель</string>
+    <string name="enable_large_top_bar_in_this_app">включить большую верхнюю панель в этом приложении</string>
 </resources>

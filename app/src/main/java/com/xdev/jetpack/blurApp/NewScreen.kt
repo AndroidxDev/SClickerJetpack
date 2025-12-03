@@ -39,8 +39,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,9 +52,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.xdev.jetpack.R
-import com.xdev.jetpack.blurApp.preferences.CategoryPreference
-import com.xdev.jetpack.blurApp.preferences.SliderPreference
 import com.xdev.jetpack.blurApp.preferences.SwitchPreference
+import com.xdev.jetpack.blurApp.preferences.categoryPreference
 import com.xdev.jetpack.blurApp.preferences.listPreference
 import com.xdev.jetpack.blurApp.preferences.sliderPreference
 import dev.chrisbanes.haze.HazeProgressive
@@ -133,30 +134,33 @@ fun TopBar(
             state = hazeState,
             style = blurStyle
         ) {
-            if (gradientBlur) {
-                progressive =
-                    HazeProgressive.verticalGradient(
-                        startIntensity = progress,
-                        endIntensity = 0f
-                    )
+            progressive = if (gradientBlur) {
+                HazeProgressive.verticalGradient(
+                    startIntensity = progress,
+                    endIntensity = 0f
+                )
+            } else {
+                null
             }
             blurEnabled = blurEnable
             blurRadius = blurRadius2.dp
         }
         .onGloballyPositioned { topBarHeight(it.size.height) }
 
-    val title = @Composable {
-        Row(Modifier.padding(end = 15.dp)) {
-            Text("SClicker")
-            Spacer(modifier = Modifier.weight(1f))
-            Text("Ver: Blur", fontSize = 15.sp)
+         val title =  @Composable {
+            Row(Modifier.padding(end = 15.dp)) {
+                Text("SClicker")
+                Spacer(modifier = Modifier.weight(1f))
+                Text("Ver: Blur", fontSize = 15.sp)
+            }
         }
-    }
-    if (isLarge) {
-        LargeTopAppBar(colors = colors, modifier = modifier, title = title)
+
+    if (!isLarge) {
+        TopAppBar(title = title, modifier = modifier, colors = colors)
     } else {
-        TopAppBar(colors = colors, modifier = modifier, title = title)
+        LargeTopAppBar(title = title, modifier = modifier, colors = colors)
     }
+
 }
 
 @Composable
@@ -202,19 +206,21 @@ fun CustomCard(index: Int) {
 @Composable
 fun NewScreen() {
 
+    // Locals
+    val context = LocalContext.current
+    val density = LocalDensity.current
+
+    // States
     val hazeState = rememberHazeState()
     val navController = rememberNavController()
     val listState = rememberLazyListState()
 
-    var topBarHeight by remember { mutableIntStateOf(0) }
-    val density = LocalDensity.current
-    var blurEnable by remember { mutableStateOf(true) }
-    var gradientBlur by remember { mutableStateOf(false) }
-
+    // Blur
     var blurRadius2 by remember { mutableFloatStateOf(20f) }
+    var blurEnable by remember { mutableStateOf(true) }
 
+    // BlurType
     var blurType by remember { mutableStateOf("Ultra Thin") }
-
     val blurStyle = when (blurType) {
         "Ultra Thin" -> HazeMaterials.ultraThin()
         "Thin" -> HazeMaterials.thin()
@@ -224,9 +230,13 @@ fun NewScreen() {
         else -> HazeStyle.Unspecified
     }
 
-    var isLarge by remember { mutableStateOf(false) }
-
+    // GradientBlur
+    var gradientBlur by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
+
+    // TopBar
+    var isLarge by remember { mutableStateOf(false) }
+    var topBarHeight by remember { mutableIntStateOf(0) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -238,9 +248,10 @@ fun NewScreen() {
             NavHost(
                 modifier = Modifier.padding(),
                 navController = navController,
-                // startDestination = Nav.HOME,
-                 startDestination = Nav.SETTINGS,
+                 startDestination = Nav.HOME,
+                // startDestination = Nav.SETTINGS,
                 builder = {
+
                     composable(Nav.HOME) {
                         LazyColumn(
                             modifier = Modifier.hazeSource(hazeState),
@@ -252,6 +263,7 @@ fun NewScreen() {
                             }
                         }
                     }
+
                     composable(Nav.SETTINGS) {
                         ProvidePreferenceLocals {
                             LazyColumn(
@@ -259,27 +271,24 @@ fun NewScreen() {
                                 .hazeSource(state = hazeState),
                                 contentPadding = PaddingValues(top = with(density) { topBarHeight.toDp() })
                             ) {
-
-                                item {
-                                    CategoryPreference("Blur settings") {
+                                categoryPreference("bs", context.getString(R.string.blur_settings)) {
                                         SwitchPreference(
                                             value = blurEnable,
-                                            title = { Text(text = "Blur enable") },
+                                            title = { Text(text = stringResource(R.string.blur_enable)) },
                                             //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
-                                            summary = { Text("Enable blur with this app") },
+                                            summary = { Text(stringResource(R.string.enable_blur_with_this_app)) },
                                             onValueChange = { newValue ->
                                                 blurEnable = newValue
                                             }
                                         )
-
                                         sliderPreference(
                                             key = "slider_preference2",
                                             enabled = { blurEnable },
                                             defaultValue = 20f,
-                                            title = { Text(text = "Blur radius") },
+                                            title = { Text(text = stringResource(R.string.blur_radius)) },
                                             valueRange = 1f..150f,
                                             //valueSteps = 9,
-                                            summary = { Text(text = "change blur radius") },
+                                            summary = { Text(text = stringResource(R.string.change_blur_radius)) },
                                             valueText = {
                                                 Text(text = ((it / 0.5f).roundToInt() * 0.5f).toString())
                                             },
@@ -287,7 +296,6 @@ fun NewScreen() {
                                                 blurRadius2 = (it)
                                             }
                                         )
-
                                         listPreference(
                                             enabled = { blurEnable },
                                             key = "aa",
@@ -302,53 +310,44 @@ fun NewScreen() {
                                                 "Thick",
                                                 "Ultra Thick"
                                             ),
-                                            title = { Text("BlurType") },
+                                            title = { Text(stringResource(R.string.blurtype)) },
                                             summary = { Text(text = it) }
                                         )
                                     }
-                                }
 
-                                item {
-                                    CategoryPreference("Gradient blur") {
+                                    categoryPreference("gb",
+                                        context.getString(R.string.gradient_blur)) {
                                         SwitchPreference(
                                             value = if (blurEnable) gradientBlur else false,
-                                            title = { Text(text = "Gradient blur") },
-                                            summary = { Text("Enable gradient blur on top bar") },
+                                            title = { Text(text = stringResource(R.string.gradient_blur)) },
+                                            summary = { Text(stringResource(R.string.enable_gradient_blur_on_top_bar)) },
                                             onValueChange = { newValue ->
                                                 gradientBlur = newValue
                                             },
                                             enabled = blurEnable
                                         )
-
-
                                         sliderPreference(
                                             key = "slider_preference",
                                             enabled = { blurEnable and gradientBlur },
                                             defaultValue = 50f,
-                                            title = { Text(text = "Blur progress2") },
+                                            title = { Text(text = stringResource(R.string.blur_progress)) },
                                             valueRange = 1f..100f,
-                                            //valueSteps = 9,
-                                            summary = { Text(text = "change blur progress on topbar (only for gradient)") },
+                                            summary = { Text(text = stringResource(R.string.change_blur_progress_on_topbar_only_for_gradient)) },
                                             valueText = { Text(text = ((progress / 0.05f).roundToInt() * 0.05f).toString()) },
                                             onValueChange = {
                                                 progress = (it / 100f)
                                             }
                                         )
                                     }
-                                }
-
-                                item {
-                                    CategoryPreference("Top Bar") {
+                                    categoryPreference("tb", context.getString(R.string.top_bar)) {
                                         SwitchPreference(
                                             value = isLarge,
-                                            title = { Text(text = "enable large top bar") },
+                                            title = { Text(text = stringResource(R.string.enable_large_top_bar)) },
                                             //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
-                                            summary = { Text("enable large top bar in this app") },
+                                            summary = { Text(stringResource(R.string.enable_large_top_bar_in_this_app)) },
                                             onValueChange = { isLarge = it }
                                         )
                                     }
-
-                                }
                             }
                         }
                     }
@@ -368,7 +367,7 @@ fun NewScreen() {
                     ) {
                         blurEnabled = blurEnable
                         blurRadius = blurRadius2.dp
-                      },
+                    },
                 navController,
                 blurEnable
             )
@@ -378,7 +377,7 @@ fun NewScreen() {
 }
 
 
-@Preview(showSystemUi = true, showBackground = true)
+@Preview(showSystemUi = true, showBackground = true, locale = "ru")
 @Composable
 fun Preview3() {
     NewScreen()
