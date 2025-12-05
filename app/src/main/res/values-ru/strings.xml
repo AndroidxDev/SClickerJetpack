@@ -16,4 +16,6 @@
     <string name="top_bar">Верхняя панель</string>
     <string name="enable_large_top_bar">включить большую верхнюю панель</string>
     <string name="enable_large_top_bar_in_this_app">включить большую верхнюю панель в этом приложении</string>
+    <string name="app_settings">Настройки приложения</string>
+    <string name="theme_color">Цвет темы приложения</string>
 </resources>

@@ -3,6 +3,7 @@
 package com.xdev.jetpack
 
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Bundle
@@ -45,6 +46,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -117,21 +119,27 @@ class MainActivity : ComponentActivity() {
         level = sharedPreferences.getInt("level", 1)
         price = sharedPreferences.getInt("price", 10)
 
-        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        val isNavShow = sharedPreferences.getBoolean("navShow", true)
 
-        insetsController.apply {
-            hide(WindowInsetsCompat.Type.navigationBars())
-            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        if (!isNavShow) {
+            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+
+            insetsController.apply {
+                hide(WindowInsetsCompat.Type.navigationBars())
+                systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
         }
 
         setContent {
-            JetpackTheme {
-             // ScreenPreview()
-              /*  UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
-                    clicks = clicksN
-                    level = levelN
-                    price = priceN } */
-                NewScreen()
+            var colorValue by remember { mutableStateOf("default") }
+            JetpackTheme(colorTheme = colorValue) {
+                NewScreen(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } })
+                // ScreenPreview()
+                /*  UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
+                      clicks = clicksN
+                      level = levelN
+                      price = priceN } */
             }
         }
     }
@@ -149,7 +157,7 @@ class MainActivity : ComponentActivity() {
     //Preview function
     @Preview(
         showSystemUi = true, showBackground = true,
-        wallpaper = Wallpapers.YELLOW_DOMINATED_EXAMPLE
+        wallpaper = Wallpapers.YELLOW_DOMINATED_EXAMPLE,
     )
     @Composable
     fun ScreenPreview(){

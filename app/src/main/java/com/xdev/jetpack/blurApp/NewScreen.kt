@@ -1,5 +1,6 @@
 package com.xdev.jetpack.blurApp
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,6 +56,7 @@ import com.xdev.jetpack.blurApp.preferences.SwitchPreference
 import com.xdev.jetpack.blurApp.preferences.categoryPreference
 import com.xdev.jetpack.blurApp.preferences.listPreference
 import com.xdev.jetpack.blurApp.preferences.sliderPreference
+import com.xdev.jetpack.ui.theme.JetpackTheme
 import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
@@ -147,13 +148,13 @@ fun TopBar(
         }
         .onGloballyPositioned { topBarHeight(it.size.height) }
 
-         val title =  @Composable {
-            Row(Modifier.padding(end = 15.dp)) {
-                Text("SClicker")
-                Spacer(modifier = Modifier.weight(1f))
-                Text("Ver: Blur", fontSize = 15.sp)
-            }
+    val title = @Composable {
+        Row(Modifier.padding(end = 15.dp)) {
+            Text("SClicker")
+            Spacer(modifier = Modifier.weight(1f))
+            Text("Ver: Blur", fontSize = 15.sp)
         }
+    }
 
     if (!isLarge) {
         TopAppBar(title = title, modifier = modifier, colors = colors)
@@ -202,12 +203,12 @@ fun CustomCard(index: Int) {
 }
 
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun NewScreen() {
+fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
 
     // Locals
-    val context = LocalContext.current
     val density = LocalDensity.current
 
     // States
@@ -230,13 +231,20 @@ fun NewScreen() {
         else -> HazeStyle.Unspecified
     }
 
+    //theme
+    var themeType by remember { mutableStateOf("default") }
+
     // GradientBlur
     var gradientBlur by remember { mutableStateOf(false) }
-    var progress by remember { mutableFloatStateOf(0f) }
+    var progress by remember { mutableFloatStateOf(0.2f) }
 
     // TopBar
     var isLarge by remember { mutableStateOf(false) }
     var topBarHeight by remember { mutableIntStateOf(0) }
+    var bottomBarHeight by remember { mutableIntStateOf(0) }
+
+    // Nav
+    var navShow by remember { mutableStateOf(true) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -248,14 +256,15 @@ fun NewScreen() {
             NavHost(
                 modifier = Modifier.padding(),
                 navController = navController,
-                 startDestination = Nav.HOME,
-                // startDestination = Nav.SETTINGS,
+                //startDestination = Nav.HOME,
+
+                 startDestination = Nav.SETTINGS,
                 builder = {
 
                     composable(Nav.HOME) {
                         LazyColumn(
                             modifier = Modifier.hazeSource(hazeState),
-                            contentPadding = PaddingValues(top = with(density) { topBarHeight.toDp() }),
+                            contentPadding = PaddingValues(top = with(density) { (topBarHeight+30).toDp() }, bottom = with(density) { (bottomBarHeight + 30).toDp() }),
                             state = listState
                         ) {
                             items(40, key = { it }) { index ->
@@ -265,89 +274,125 @@ fun NewScreen() {
                     }
 
                     composable(Nav.SETTINGS) {
+                        val blurSettings = stringResource(R.string.blur_settings)
+                        val gradientBlurT = stringResource(R.string.gradient_blur)
+                        val topBar = stringResource(R.string.top_bar)
+                        val appSettings = stringResource(R.string.app_settings)
+
                         ProvidePreferenceLocals {
                             LazyColumn(
                                 modifier = Modifier
-                                .hazeSource(state = hazeState),
-                                contentPadding = PaddingValues(top = with(density) { topBarHeight.toDp() })
-                            ) {
-                                categoryPreference("bs", context.getString(R.string.blur_settings)) {
-                                        SwitchPreference(
-                                            value = blurEnable,
-                                            title = { Text(text = stringResource(R.string.blur_enable)) },
-                                            //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
-                                            summary = { Text(stringResource(R.string.enable_blur_with_this_app)) },
-                                            onValueChange = { newValue ->
-                                                blurEnable = newValue
-                                            }
-                                        )
-                                        sliderPreference(
-                                            key = "slider_preference2",
-                                            enabled = { blurEnable },
-                                            defaultValue = 20f,
-                                            title = { Text(text = stringResource(R.string.blur_radius)) },
-                                            valueRange = 1f..150f,
-                                            //valueSteps = 9,
-                                            summary = { Text(text = stringResource(R.string.change_blur_radius)) },
-                                            valueText = {
-                                                Text(text = ((it / 0.5f).roundToInt() * 0.5f).toString())
-                                            },
-                                            onValueChange = {
-                                                blurRadius2 = (it)
-                                            }
-                                        )
-                                        listPreference(
-                                            enabled = { blurEnable },
-                                            key = "aa",
-                                            onValueChange = {
-                                                blurType = it
-                                            },
-                                            defaultValue = blurType,
-                                            values = listOf(
-                                                "Ultra Thin",
-                                                "Thin",
-                                                "Regular",
-                                                "Thick",
-                                                "Ultra Thick"
-                                            ),
-                                            title = { Text(stringResource(R.string.blurtype)) },
-                                            summary = { Text(text = it) }
-                                        )
-                                    }
+                                    .hazeSource(state = hazeState),
+                                contentPadding = PaddingValues(top = with(density) { (topBarHeight+15*2).toDp() }, bottom = with(density) { (bottomBarHeight + 30).toDp() }),
+                                ) {
+                                categoryPreference("bs", blurSettings) {
+                                    SwitchPreference(
+                                        value = blurEnable,
+                                        title = { Text(text = stringResource(R.string.blur_enable)) },
+                                        //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
+                                        summary = { Text(stringResource(R.string.enable_blur_with_this_app)) },
+                                        onValueChange = { newValue ->
+                                            blurEnable = newValue
+                                        }
+                                    )
+                                    sliderPreference(
+                                        key = "slider_preference2",
+                                        enabled = { blurEnable },
+                                        defaultValue = 20f,
+                                        title = { Text(text = stringResource(R.string.blur_radius)) },
+                                        valueRange = 1f..150f,
+                                        //valueSteps = 9,
+                                        summary = { Text(text = stringResource(R.string.change_blur_radius)) },
+                                        valueText = {
+                                            Text(text = ((it / 0.5f).roundToInt() * 0.5f).toString())
+                                        },
+                                        onValueChange = {
+                                            blurRadius2 = (it)
+                                        }
+                                    )
+                                    listPreference(
+                                        enabled = { blurEnable },
+                                        key = "aa",
+                                        onValueChange = {
+                                            blurType = it
+                                        },
+                                        defaultValue = blurType,
+                                        values = listOf(
+                                            "Ultra Thin",
+                                            "Thin",
+                                            "Regular",
+                                            "Thick",
+                                            "Ultra Thick"
+                                        ),
+                                        title = { Text(stringResource(R.string.blurtype)) },
+                                        summary = { Text(text = it) }
+                                    )
+                                }
 
-                                    categoryPreference("gb",
-                                        context.getString(R.string.gradient_blur)) {
-                                        SwitchPreference(
-                                            value = if (blurEnable) gradientBlur else false,
-                                            title = { Text(text = stringResource(R.string.gradient_blur)) },
-                                            summary = { Text(stringResource(R.string.enable_gradient_blur_on_top_bar)) },
-                                            onValueChange = { newValue ->
-                                                gradientBlur = newValue
-                                            },
-                                            enabled = blurEnable
-                                        )
-                                        sliderPreference(
-                                            key = "slider_preference",
-                                            enabled = { blurEnable and gradientBlur },
-                                            defaultValue = 50f,
-                                            title = { Text(text = stringResource(R.string.blur_progress)) },
-                                            valueRange = 1f..100f,
-                                            summary = { Text(text = stringResource(R.string.change_blur_progress_on_topbar_only_for_gradient)) },
-                                            valueText = { Text(text = ((progress / 0.05f).roundToInt() * 0.05f).toString()) },
-                                            onValueChange = {
-                                                progress = (it / 100f)
-                                            }
-                                        )
-                                    }
-                                    categoryPreference("tb", context.getString(R.string.top_bar)) {
-                                        SwitchPreference(
-                                            value = isLarge,
-                                            title = { Text(text = stringResource(R.string.enable_large_top_bar)) },
-                                            //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
-                                            summary = { Text(stringResource(R.string.enable_large_top_bar_in_this_app)) },
-                                            onValueChange = { isLarge = it }
-                                        )
-                                    }
+                                categoryPreference("gb", gradientBlurT) {
+                                    SwitchPreference(
+                                        value = if (blurEnable) gradientBlur else false,
+                                        title = { Text(text = stringResource(R.string.gradient_blur)) },
+                                        summary = { Text(stringResource(R.string.enable_gradient_blur_on_top_bar)) },
+                                        onValueChange = { newValue ->
+                                            gradientBlur = newValue
+                                        },
+                                        enabled = blurEnable
+                                    )
+                                    sliderPreference(
+                                        key = "slider_preference",
+                                        enabled = { blurEnable and gradientBlur },
+                                        defaultValue = 50f,
+                                        title = { Text(text = stringResource(R.string.blur_progress)) },
+                                        valueRange = 1f..100f,
+                                        summary = { Text(text = stringResource(R.string.change_blur_progress_on_topbar_only_for_gradient)) },
+                                        valueText = { Text(text = ((progress / 0.05f).roundToInt() * 0.05f).toString()) },
+                                        onValueChange = {
+                                            progress = (it / 100f)
+                                        }
+                                    )
+                                }
+                                categoryPreference("tb", topBar) {
+                                    SwitchPreference(
+                                        value = isLarge,
+                                        title = { Text(text = stringResource(R.string.enable_large_top_bar)) },
+                                        //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
+                                        summary = { Text(stringResource(R.string.enable_large_top_bar_in_this_app)) },
+                                        onValueChange = { isLarge = it }
+                                    )
+                                }
+
+                                categoryPreference("app", appSettings) {
+                                    listPreference(
+                                        enabled = { true },
+                                        key = "1212",
+                                        onValueChange = {
+                                            onThemeChange(it)
+                                            themeType = it
+                                        },
+                                        defaultValue = themeType,
+                                        values = listOf(
+                                            "default",
+                                            "dynamic dark",
+                                            "dynamic light",
+                                            "dark",
+                                            "light",
+                                            "red",
+                                            "yellow"
+                                        ),
+                                        title = { Text(stringResource(R.string.theme_color)) },
+                                        summary = { Text(text = it) }
+                                    )
+                                    SwitchPreference(
+                                        value = navShow,
+                                        title = { Text(text = "Show NavBar") },
+                                        summary = { Text("Show navigation bar line") },
+                                        onValueChange = {
+                                            navShow = it
+                                            navShow(it)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -367,11 +412,41 @@ fun NewScreen() {
                     ) {
                         blurEnabled = blurEnable
                         blurRadius = blurRadius2.dp
+                    }
+                    .onGloballyPositioned {
+                        bottomBarHeight = it.size.height
                     },
                 navController,
                 blurEnable
             )
 
+            /* //progressing
+            val scope = rememberCoroutineScope()
+            val snackBarHostState = remember { SnackbarHostState() }
+
+            scope.launch {
+                val result = snackBarHostState
+                    .showSnackbar(
+                        message = "Snackbar",
+                        actionLabel = "Action",
+                        // Defaults to SnackbarDuration.Short
+                        duration = SnackbarDuration.Indefinite
+                    )
+                when (result) {
+                    SnackbarResult.ActionPerformed -> {
+                        /* Handle snackbar action performed */
+                    }
+                    SnackbarResult.Dismissed -> {
+                        /* Handle snackbar dismissed */
+                    }
+                }
+            }
+            SnackbarHost(
+                hostState = snackBarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            )*/
         }
     }
 }
@@ -380,5 +455,7 @@ fun NewScreen() {
 @Preview(showSystemUi = true, showBackground = true, locale = "ru")
 @Composable
 fun Preview3() {
-    NewScreen()
+    JetpackTheme(colorTheme = "yellow", darkTheme = true) {
+        NewScreen({ "dynamic" }, { true })
+    }
 }
