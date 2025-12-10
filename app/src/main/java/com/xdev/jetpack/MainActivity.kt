@@ -9,6 +9,7 @@ import android.graphics.Shader
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,8 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Upgrade
@@ -72,6 +75,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.xdev.jetpack.blurApp.NewScreen
+import com.xdev.jetpack.blurApp.cScaffold
+import com.xdev.jetpack.blurApp.datastore.DataStoreManager
 import com.xdev.jetpack.ui.theme.JetpackTheme
 import com.xdev.jetpack.utils.InfoCard
 import dev.chrisbanes.haze.HazeProgressive
@@ -89,8 +94,12 @@ object Navs {
     const val UPGRADE = "Upgrade"
     const val LIST = "List"
     val items = listOf(HOME, UPGRADE, LIST)
-    val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Upgrade, Icons.Filled.List)
-    val unselectedIcons = listOf(Icons.Outlined.Home, Icons.Outlined.Upgrade, Icons.Outlined.List)
+    val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Upgrade,
+        Icons.AutoMirrored.Filled.List
+    )
+    val unselectedIcons = listOf(Icons.Outlined.Home, Icons.Outlined.Upgrade,
+        Icons.AutoMirrored.Outlined.List
+    )
 }
 class MainActivity : ComponentActivity() {
 
@@ -111,7 +120,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-       // enableEdgeToEdge()
+        enableEdgeToEdge()
 
         sharedPreferences = this.getSharedPreferences("data", MODE_PRIVATE)
 
@@ -131,10 +140,14 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val dataStoreManager = DataStoreManager(this)
+
         setContent {
             var colorValue by remember { mutableStateOf("default") }
             JetpackTheme(colorTheme = colorValue) {
-                NewScreen(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } })
+                cScaffold(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } }, dataStoreManager)
+               // NewScreen(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } })
+
                 // ScreenPreview()
                 /*  UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
                       clicks = clicksN

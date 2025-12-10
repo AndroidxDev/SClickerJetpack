@@ -1,6 +1,8 @@
 package com.xdev.jetpack.blurApp
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,21 +27,28 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +61,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.xdev.jetpack.R
+import com.xdev.jetpack.blurApp.datastore.DataStoreManager
+import com.xdev.jetpack.blurApp.datastore.SettingsData
 import com.xdev.jetpack.blurApp.preferences.SwitchPreference
 import com.xdev.jetpack.blurApp.preferences.categoryPreference
 import com.xdev.jetpack.blurApp.preferences.listPreference
@@ -65,6 +76,8 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
 import kotlin.math.roundToInt
 
@@ -202,26 +215,74 @@ fun CustomCard(index: Int) {
 
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun cScaffold(
+    onThemeChange: (String) -> Unit,
+    navShow: (Boolean) -> Unit,
+    dataStoreManager: DataStoreManager
+) {
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) {
+        NewScreen(
+            onThemeChange = { onThemeChange(it) },
+            navShow = { navShow(it) },
+            scope,
+            snackbarHostState,
+            dataStoreManager
+        )
+    }
+}
+
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @OptIn(ExperimentalHazeMaterialsApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
+fun NewScreen(
+    onThemeChange: (String) -> Unit,
+    navShow: (Boolean) -> Unit,
+    scope: CoroutineScope,
+    snakbarState: SnackbarHostState,
+    dataStoreManager: DataStoreManager
+) {
+
+    val settings by dataStoreManager.getAll().collectAsState(
+        SettingsData(
+            blurRadius2 = 20f,
+            blurEnable = true,
+            blurType = "Ultra Thin",
+            themeType = "default",
+            gradientBlur = false,
+            progress = 0.5f,
+            isLarge = false,
+            navShow = true
+        )
+    )
+
+    LaunchedEffect(settings.themeType) {
+        onThemeChange(settings.themeType)
+    }
+
 
     // Locals
     val density = LocalDensity.current
-
+    val context = LocalContext.current
     // States
     val hazeState = rememberHazeState()
     val navController = rememberNavController()
     val listState = rememberLazyListState()
 
     // Blur
-    var blurRadius2 by remember { mutableFloatStateOf(20f) }
-    var blurEnable by remember { mutableStateOf(true) }
+    var blurRadius2 = settings.blurRadius2
+    var blurEnable = settings.blurEnable
 
     // BlurType
-    var blurType by remember { mutableStateOf("Ultra Thin") }
+    var blurType = settings.blurType
     val blurStyle = when (blurType) {
         "Ultra Thin" -> HazeMaterials.ultraThin()
         "Thin" -> HazeMaterials.thin()
@@ -232,19 +293,19 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
     }
 
     //theme
-    var themeType by remember { mutableStateOf("default") }
+    var themeType = settings.themeType
 
     // GradientBlur
-    var gradientBlur by remember { mutableStateOf(false) }
-    var progress by remember { mutableFloatStateOf(0.2f) }
+    var gradientBlur = settings.gradientBlur
+    var progress = settings.progress
 
     // TopBar
-    var isLarge by remember { mutableStateOf(false) }
+    var isLarge = settings.isLarge
     var topBarHeight by remember { mutableIntStateOf(0) }
     var bottomBarHeight by remember { mutableIntStateOf(0) }
 
     // Nav
-    var navShow by remember { mutableStateOf(true) }
+    var navShow = settings.navShow
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -256,15 +317,16 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
             NavHost(
                 modifier = Modifier.padding(),
                 navController = navController,
-                //startDestination = Nav.HOME,
-
-                 startDestination = Nav.SETTINGS,
+                startDestination = Nav.HOME,
+                //startDestination = Nav.SETTINGS,
                 builder = {
 
                     composable(Nav.HOME) {
                         LazyColumn(
                             modifier = Modifier.hazeSource(hazeState),
-                            contentPadding = PaddingValues(top = with(density) { (topBarHeight+30).toDp() }, bottom = with(density) { (bottomBarHeight + 30).toDp() }),
+                            contentPadding = PaddingValues(
+                                top = with(density) { (topBarHeight + 30).toDp() },
+                                bottom = with(density) { (bottomBarHeight + 30).toDp() }),
                             state = listState
                         ) {
                             items(40, key = { it }) { index ->
@@ -283,8 +345,10 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                             LazyColumn(
                                 modifier = Modifier
                                     .hazeSource(state = hazeState),
-                                contentPadding = PaddingValues(top = with(density) { (topBarHeight+15*2).toDp() }, bottom = with(density) { (bottomBarHeight + 30).toDp() }),
-                                ) {
+                                contentPadding = PaddingValues(
+                                    top = with(density) { (topBarHeight + 15 * 2).toDp() },
+                                    bottom = with(density) { (bottomBarHeight + 30).toDp() }),
+                            ) {
                                 categoryPreference("bs", blurSettings) {
                                     SwitchPreference(
                                         value = blurEnable,
@@ -293,6 +357,10 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                                         summary = { Text(stringResource(R.string.enable_blur_with_this_app)) },
                                         onValueChange = { newValue ->
                                             blurEnable = newValue
+
+                                            scope.launch {
+                                                dataStoreManager.saveBlurEnable(newValue)
+                                            }
                                         }
                                     )
                                     sliderPreference(
@@ -308,6 +376,10 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                                         },
                                         onValueChange = {
                                             blurRadius2 = (it)
+
+                                            scope.launch {
+                                                dataStoreManager.saveBlurRadius(it)
+                                            }
                                         }
                                     )
                                     listPreference(
@@ -315,6 +387,10 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                                         key = "aa",
                                         onValueChange = {
                                             blurType = it
+
+                                            scope.launch {
+                                                dataStoreManager.saveBlurType(it)
+                                            }
                                         },
                                         defaultValue = blurType,
                                         values = listOf(
@@ -331,24 +407,32 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
 
                                 categoryPreference("gb", gradientBlurT) {
                                     SwitchPreference(
-                                        value = if (blurEnable) gradientBlur else false,
+                                        value = gradientBlur,
                                         title = { Text(text = stringResource(R.string.gradient_blur)) },
                                         summary = { Text(stringResource(R.string.enable_gradient_blur_on_top_bar)) },
                                         onValueChange = { newValue ->
                                             gradientBlur = newValue
+
+                                            scope.launch {
+                                                dataStoreManager.saveGradientBlur(newValue)
+                                            }
                                         },
                                         enabled = blurEnable
                                     )
                                     sliderPreference(
                                         key = "slider_preference",
                                         enabled = { blurEnable and gradientBlur },
-                                        defaultValue = 50f,
+                                        defaultValue = 0.5f,
                                         title = { Text(text = stringResource(R.string.blur_progress)) },
-                                        valueRange = 1f..100f,
+                                        valueRange = 0.01f..1f,
                                         summary = { Text(text = stringResource(R.string.change_blur_progress_on_topbar_only_for_gradient)) },
                                         valueText = { Text(text = ((progress / 0.05f).roundToInt() * 0.05f).toString()) },
                                         onValueChange = {
-                                            progress = (it / 100f)
+                                            progress = (it)
+
+                                            scope.launch {
+                                                dataStoreManager.saveProgress(it)
+                                            }
                                         }
                                     )
                                 }
@@ -358,7 +442,13 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                                         title = { Text(text = stringResource(R.string.enable_large_top_bar)) },
                                         //icon = { Icon(imageVector = Icons.Outlined.Info, contentDescription = null) },
                                         summary = { Text(stringResource(R.string.enable_large_top_bar_in_this_app)) },
-                                        onValueChange = { isLarge = it }
+                                        onValueChange = {
+                                            isLarge = it
+
+                                            scope.launch {
+                                                dataStoreManager.saveIsLarge(it)
+                                            }
+                                        }
                                     )
                                 }
 
@@ -369,6 +459,10 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                                         onValueChange = {
                                             onThemeChange(it)
                                             themeType = it
+
+                                            scope.launch {
+                                                dataStoreManager.saveThemeType(it)
+                                            }
                                         },
                                         defaultValue = themeType,
                                         values = listOf(
@@ -390,6 +484,21 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                                         onValueChange = {
                                             navShow = it
                                             navShow(it)
+
+                                            //need restart
+                                            scope.launch {
+                                                val result = snakbarState
+                                                    .showSnackbar(
+                                                        message = "Restart app to apply changes",
+                                                        actionLabel = "restart",
+                                                        duration = SnackbarDuration.Short
+                                                    )
+                                                if (result == SnackbarResult.ActionPerformed) {
+                                                    restartApp(context)
+                                                }
+
+                                                dataStoreManager.saveNavShow(it)
+                                            }
                                         }
                                     )
                                 }
@@ -419,43 +528,30 @@ fun NewScreen(onThemeChange: (String) -> Unit, navShow: (Boolean) -> Unit) {
                 navController,
                 blurEnable
             )
-
-            /* //progressing
-            val scope = rememberCoroutineScope()
-            val snackBarHostState = remember { SnackbarHostState() }
-
-            scope.launch {
-                val result = snackBarHostState
-                    .showSnackbar(
-                        message = "Snackbar",
-                        actionLabel = "Action",
-                        // Defaults to SnackbarDuration.Short
-                        duration = SnackbarDuration.Indefinite
-                    )
-                when (result) {
-                    SnackbarResult.ActionPerformed -> {
-                        /* Handle snackbar action performed */
-                    }
-                    SnackbarResult.Dismissed -> {
-                        /* Handle snackbar dismissed */
-                    }
-                }
-            }
-            SnackbarHost(
-                hostState = snackBarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-            )*/
         }
     }
+}
+
+fun restartApp(context: Context) {
+    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+    Runtime.getRuntime().exit(0)
 }
 
 
 @Preview(showSystemUi = true, showBackground = true, locale = "ru")
 @Composable
 fun Preview3() {
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     JetpackTheme(colorTheme = "yellow", darkTheme = true) {
-        NewScreen({ "dynamic" }, { true })
+        NewScreen(
+            { "dynamic" },
+            { true },
+            scope,
+            snackbarHostState,
+            DataStoreManager(LocalContext.current)
+        )
     }
 }
