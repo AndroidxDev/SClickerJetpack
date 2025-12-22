@@ -284,9 +284,9 @@ fun TopBar(
         }
         val title = @Composable {
             Row(Modifier.padding(end = 15.dp)) {
-                Text("SClicker")
+                Text("Blur Lab")
                 Spacer(modifier = Modifier.weight(1f))
-                Text("Ver: Blur", fontSize = 15.sp)
+                Text("Ver: 3.90", fontSize = 15.sp)
             }
         }
 
@@ -328,7 +328,7 @@ fun TopBar(
                         .padding(top = 9.dp, bottom = 9.dp, end = 15.dp, start = 15.dp)
                         .align(Alignment.TopStart)
                 ) {
-                    Text("SClicker", style = MaterialTheme.typography.titleLarge)
+                    Text("Blur Lab", style = MaterialTheme.typography.titleLarge)
                 }
 
                 Box(
@@ -347,7 +347,7 @@ fun TopBar(
                         .padding(top = 9.dp, bottom = 9.dp, end = 15.dp, start = 15.dp)
                         .align(Alignment.TopEnd)
                 ) {
-                    Text("Ver: Blur", style = MaterialTheme.typography.titleSmall)
+                    Text("Ver: 3.90", style = MaterialTheme.typography.titleSmall)
                 }
             }
         }

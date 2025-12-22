@@ -42,7 +42,7 @@ fun LazyListScope.categoryPreference(
     content: @Composable ColumnScope.() -> Unit
 ) {
     item(key = key, contentType = "Category") {
-        val a = true
+        val a = false
         val isIos26 by (LocalContext.current).dataStore.data.map {
             return@map it[booleanPreferencesKey("iosSettings")] ?: a
         }.collectAsState(initial = a)
