@@ -5,25 +5,33 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.xdev.jetpack.blurApp.liquidglass.components.LiquidSlider
+import com.xdev.jetpack.blurApp.preferences.extensions.dataStore
+import kotlinx.coroutines.flow.map
 import me.zhanghai.compose.preference.LocalPreferenceTheme
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.rememberPreferenceState
 
 @Composable
-fun sliderPreference(
+fun SliderPreference(
     key: String,
     defaultValue: Float,
     title: @Composable (Float) -> Unit,
@@ -123,6 +131,8 @@ fun SliderPreference(
         }
     }
 
+    var latestSliderValue by remember { mutableFloatStateOf(sliderValue) }
+
     Preference(
         title = title,
         modifier = modifier,
@@ -132,20 +142,46 @@ fun SliderPreference(
             Column {
                 summary?.invoke()
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    var latestSliderValue = sliderValue
-                    Slider(
-                        value = sliderValue,
-                        onValueChange = {
-                            onSliderValueChange(it)
-                            latestSliderValue = it
-                        },
-                        modifier = Modifier.weight(1f),
-                        enabled = enabled,
-                        valueRange = valueRange,
-                        steps = valueSteps,
-                        onValueChangeFinished = { onValueChange(latestSliderValue) }
-                    )
-                    if (valueText != null) {
+
+                    val backgroundColor = MaterialTheme.colorScheme.background
+                    val backdrop = rememberLayerBackdrop {
+                        drawRect(backgroundColor)
+                        drawContent()
+                    }
+
+                    val a = false
+                    val liquidSlider by (LocalContext.current).dataStore.data.map {
+                        return@map it[booleanPreferencesKey("liquidSlider")] ?: a
+                    }.collectAsState(initial = a)
+
+                    if (!liquidSlider) {
+                        Slider(
+                            value = sliderValue,
+                            onValueChange = {
+                                onSliderValueChange(it)
+                                latestSliderValue = it
+                            },
+                            modifier = Modifier.weight(1f),
+                            enabled = enabled,
+                            valueRange = valueRange,
+                            steps = valueSteps,
+                            onValueChangeFinished = { onValueChange(latestSliderValue) }
+                        )
+                    } else {
+                        LiquidSlider(
+                            value = { latestSliderValue },
+                            onValueChange = {
+                                onValueChange(it)
+                                latestSliderValue = it
+                            },
+                            valueRange = valueRange,
+                            visibilityThreshold = 0.01f,
+                            backdrop = backdrop,
+                            enabled = enabled,
+                            modifier = Modifier.weight(1f).padding(top = 5.dp)
+                        )
+                    }
+                    if (valueText != null ) {
                         val theme = LocalPreferenceTheme.current
                         Box(modifier = Modifier.padding(start = theme.horizontalSpacing)) {
                             valueText()

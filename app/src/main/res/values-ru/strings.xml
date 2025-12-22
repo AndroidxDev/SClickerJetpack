@@ -18,4 +18,11 @@
     <string name="enable_large_top_bar_in_this_app">включить большую верхнюю панель в этом приложении</string>
     <string name="app_settings">Настройки приложения</string>
     <string name="theme_color">Цвет темы приложения</string>
+    <string name="liquid_glass_settings">Настройки жидкого стекла</string>
+    <string name="liquid_top_bar">Жидкая верхняя панель</string>
+    <string name="enable_liquid_top_bar_ios_like">Включить жидкую верхнюю панель (как в iOS)</string>
+    <string name="liquid_switch">Жидкий переключатель</string>
+    <string name="enable_liquid_switch_ios_like">Включить жидкий переключатель (как в iOS)</string>
+    <string name="liquid_bottom_bar">Жидкая нижняя панель</string>
+    <string name="enable_liquid_navigation_bottom_bar_ios_like">Включить жидкую нижнюю панель навигации (как в iOS)</string>
 </resources>

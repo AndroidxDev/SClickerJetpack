@@ -1,11 +1,15 @@
 package com.xdev.jetpack.blurApp.preferences.extensions
 
+import android.content.Context
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 
 @Composable
 internal fun PaddingValues.copy(
@@ -133,3 +137,5 @@ private class OffsetPaddingValues(
         return "Offset($start, $top, $end, $bottom, $paddingValues)"
     }
 }
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore("data_store")

@@ -2,10 +2,19 @@ package com.xdev.jetpack.blurApp.preferences
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.xdev.jetpack.blurApp.liquidglass.components.LiquidToggle
+import com.xdev.jetpack.blurApp.preferences.extensions.dataStore
+import kotlinx.coroutines.flow.map
 import me.zhanghai.compose.preference.LocalPreferenceTheme
 import me.zhanghai.compose.preference.Preference
 import me.zhanghai.compose.preference.ProvidePreferenceLocals
@@ -34,12 +43,34 @@ fun SwitchPreference(
             summary = summary,
             widgetContainer = {
                 val theme = LocalPreferenceTheme.current
-                Switch(
-                    checked = value,
-                    onCheckedChange = null,
-                    modifier = Modifier.padding(end = theme.horizontalSpacing),
-                    enabled = enabled,
-                )
+
+                val backgroundColor = MaterialTheme.colorScheme.background
+                val backdrop = rememberLayerBackdrop {
+                    drawRect(backgroundColor)
+                    drawContent()
+                }
+
+                val a = true
+                val liquidSwitch by (LocalContext.current).dataStore.data.map {
+                    return@map it[booleanPreferencesKey("liquidSwitch")] ?: a
+                }.collectAsState(initial = a)
+
+                if (!liquidSwitch) {
+                    Switch(
+                        checked = value,
+                        onCheckedChange = null,
+                        modifier = Modifier.padding(end = theme.horizontalSpacing),
+                        enabled = enabled,
+                    )
+                } else {
+                    LiquidToggle(
+                        selected = { value },
+                        onSelect = { onValueChange(it) },
+                        backdrop = backdrop,
+                        enabled = enabled,
+                        modifier = Modifier.padding(end = theme.horizontalSpacing)
+                    )
+                }
             },
         )
     }

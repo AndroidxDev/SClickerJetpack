@@ -52,6 +52,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -74,8 +75,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.xdev.jetpack.blurApp.CustomScaffold
 import com.xdev.jetpack.blurApp.NewScreen
-import com.xdev.jetpack.blurApp.cScaffold
 import com.xdev.jetpack.blurApp.datastore.DataStoreManager
 import com.xdev.jetpack.ui.theme.JetpackTheme
 import com.xdev.jetpack.utils.InfoCard
@@ -94,13 +95,16 @@ object Navs {
     const val UPGRADE = "Upgrade"
     const val LIST = "List"
     val items = listOf(HOME, UPGRADE, LIST)
-    val selectedIcons = listOf(Icons.Filled.Home, Icons.Filled.Upgrade,
+    val selectedIcons = listOf(
+        Icons.Filled.Home, Icons.Filled.Upgrade,
         Icons.AutoMirrored.Filled.List
     )
-    val unselectedIcons = listOf(Icons.Outlined.Home, Icons.Outlined.Upgrade,
+    val unselectedIcons = listOf(
+        Icons.Outlined.Home, Icons.Outlined.Upgrade,
         Icons.AutoMirrored.Outlined.List
     )
 }
+
 class MainActivity : ComponentActivity() {
 
     var clicks by mutableIntStateOf(0)
@@ -110,13 +114,18 @@ class MainActivity : ComponentActivity() {
 
     var hazeState: HazeState = HazeState()
 
-   // val items = listOf("Clicks", "Upgrade")
+    // val items = listOf("Clicks", "Upgrade")
 
     private lateinit var sharedPreferences: SharedPreferences
 
     private val roundCorners: Dp = 60.dp
 
     private val versionName = BuildConfig.VERSION_NAME
+
+    /*  companion object {
+          lateinit var dataStoreManager: DataStoreManager
+      }*/
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -140,13 +149,17 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val dataStoreManager = DataStoreManager(this)
+        val dataStoreManager = DataStoreManager(applicationContext)
 
         setContent {
             var colorValue by remember { mutableStateOf("default") }
             JetpackTheme(colorTheme = colorValue) {
-                cScaffold(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } }, dataStoreManager)
-               // NewScreen(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } })
+                CustomScaffold(
+                    onThemeChange = { colorValue = it },
+                    navShow = { sharedPreferences.edit { putBoolean("navShow", it) } },
+                    dataStoreManager
+                )
+                // NewScreen(onThemeChange = {colorValue = it}, navShow = { sharedPreferences.edit { putBoolean("navShow", it) } })
 
                 // ScreenPreview()
                 /*  UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
@@ -158,8 +171,7 @@ class MainActivity : ComponentActivity() {
     }
 
 
-
-    fun saveData(){
+    fun saveData() {
         sharedPreferences.edit {
             putInt("clicks", clicks)
             putInt("level", level)
@@ -173,7 +185,7 @@ class MainActivity : ComponentActivity() {
         wallpaper = Wallpapers.YELLOW_DOMINATED_EXAMPLE,
     )
     @Composable
-    fun ScreenPreview(){
+    fun ScreenPreview() {
 
         val navController = rememberNavController()
 
@@ -188,12 +200,12 @@ class MainActivity : ComponentActivity() {
                     ),*/
                     colors = TopAppBarDefaults.topAppBarColors(Color.Transparent),
                     modifier = Modifier.hazeEffect(state = hazeState) {
-                       // progressive = HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
+                        // progressive = HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
                     },
-                   /* modifier = Modifier
-                        .clip(shape = RoundedCornerShape(roundCorners))
-                        .padding(14.dp)
-                        .background(MaterialTheme.colorScheme.surface),*/
+                    /* modifier = Modifier
+                         .clip(shape = RoundedCornerShape(roundCorners))
+                         .padding(14.dp)
+                         .background(MaterialTheme.colorScheme.surface),*/
                     title = {
                         Row(Modifier.padding(end = 15.dp)) {
                             Text("SClicker")
@@ -205,8 +217,9 @@ class MainActivity : ComponentActivity() {
             },
             bottomBar = { BottomNavigationBar(navController) }
         ) {
-                //paddingValues -> NavHostContainer(navController, PaddingValues(top = paddingValues.calculateTopPadding()))
-                paddingValues -> NavHostContainer(navController, paddingValues)
+            //paddingValues -> NavHostContainer(navController, PaddingValues(top = paddingValues.calculateTopPadding()))
+                paddingValues ->
+            NavHostContainer(navController, paddingValues)
 
         }
     }
@@ -218,12 +231,12 @@ class MainActivity : ComponentActivity() {
         NavHost(
             navController = navController,
             startDestination = Navs.LIST,
-          //  modifier = Modifier.padding(paddingValues = padding),
+            //  modifier = Modifier.padding(paddingValues = padding),
             builder = {
-                composable(Navs.HOME){
+                composable(Navs.HOME) {
                     ClickerScreen()
                 }
-                composable(Navs.UPGRADE){
+                composable(Navs.UPGRADE) {
                     UpgradeScreen(level, clicks, price) { clicksN, levelN, priceN ->
                         clicks = clicksN
                         level = levelN
@@ -231,13 +244,13 @@ class MainActivity : ComponentActivity() {
                         saveData()
                     }
                 }
-                composable(Navs.LIST){
+                composable(Navs.LIST) {
                     //ListScreen {hazeState = it}
 
                     LazyColumn(
                         modifier = Modifier.hazeSource(state = hazeState)
                     ) {
-                       // returnHazeState(hazeState)
+                        // returnHazeState(hazeState)
                         items(20) { index ->
                             InfoCard("Card number $index", index)
                         }
@@ -248,7 +261,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ClickerScreen(){
+    fun ClickerScreen() {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
         ) { paddingValues ->
@@ -282,10 +295,11 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun BottomNavigationBar(navController: NavHostController) {
 
-        var selectedItem by remember { mutableIntStateOf(0)}
+        var selectedItem by remember { mutableIntStateOf(0) }
 
         NavigationBar(
-            modifier = Modifier.padding(14.dp) /*.background(
+            modifier = Modifier
+                .padding(14.dp) /*.background(
                 shape = RoundedCornerShape(15.dp),
                 color = MaterialTheme.colorScheme.surface.copy(1f)
             )*/
@@ -300,7 +314,7 @@ class MainActivity : ComponentActivity() {
                 },*/
 
             windowInsets = WindowInsets(0)
-        )  {
+        ) {
 
 
             Navs.items.forEachIndexed { index, item ->
@@ -311,7 +325,7 @@ class MainActivity : ComponentActivity() {
                             contentDescription = item,
                         )
                     },
-                    label = { Text(item)},
+                    label = { Text(item) },
                     selected = selectedItem == index,
                     onClick = {
                         selectedItem = index

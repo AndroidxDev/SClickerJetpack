@@ -13,6 +13,7 @@ import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -31,7 +32,7 @@ import kotlin.math.max
 @Composable
 fun PreferenceAlertDialog(
     onDismissRequest: () -> Unit,
-    title: @Composable () -> Unit,
+    title: String,
     buttons: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
@@ -53,7 +54,7 @@ fun PreferenceAlertDialog(
                             Modifier.fillMaxWidth()
                                 .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp)
                     ) {
-                        title()
+                        Text(title)
                     }
                 }
                 Box(modifier = Modifier.fillMaxWidth().weight(1f, fill = false)) { content() }

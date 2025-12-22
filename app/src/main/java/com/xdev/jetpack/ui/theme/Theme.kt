@@ -11,7 +11,9 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
@@ -74,6 +76,11 @@ fun dynamicTheme(context: Context, dynamicColor: Boolean, isDark: Boolean): Colo
     }
 }
 
+val LocalJetpackTheme = staticCompositionLocalOf<JetpackThemeState> {
+    error("JetpackTheme not provided")
+}
+
+
 @Composable
 fun JetpackTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -88,15 +95,29 @@ fun JetpackTheme(
         "dynamic dark" -> dynamicTheme(context, dynamicColor, true)
         "dynamic light" -> dynamicTheme(context, dynamicColor, false)
         "dark" -> DarkColorScheme
-        "light" -> LightColorScheme
+        "light" ->  LightColorScheme
         "red" -> if (darkTheme) RedDarkColorScheme else RedLightColorScheme
         "yellow" -> if (darkTheme) YellowDarkColorScheme else YellowLightColorScheme
         else -> if (darkTheme) DarkColorScheme else LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalJetpackTheme provides JetpackThemeState(
+            isDark = darkTheme,
+            colorTheme = colorTheme,
+            isDynamic = dynamicColor,
+        )
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }
+
+data class JetpackThemeState(
+    val isDark: Boolean,
+    val colorTheme: String,
+    val isDynamic: Boolean,
+)

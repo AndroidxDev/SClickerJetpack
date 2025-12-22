@@ -57,6 +57,8 @@ dependencies {
     implementation(libs.haze.materials)
     implementation(libs.compose.preference)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.liqiud.glass)
+    implementation(libs.capsule)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
