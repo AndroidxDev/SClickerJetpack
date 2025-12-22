@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.xdev.jetpack"
+    namespace = "com.xdev.blurlab"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.xdev.jetpack"
+        applicationId = "com.xdev.blurlab"
         minSdk = 31
         targetSdk = 36
         versionCode = 1

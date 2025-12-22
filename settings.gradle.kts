@@ -19,6 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SClicker"
+rootProject.name = "Blur Lab"
 include(":app")
-include(":composepreferences")
