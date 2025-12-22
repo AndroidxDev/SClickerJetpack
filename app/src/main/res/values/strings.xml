@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Jetpack</string>
+    <string name="app_name" translatable="false">Blur Lab</string>
     <string name="clickBtn">Click!</string>
     <string name="blur_settings">Blur settings</string>
     <string name="blur_enable">Blur enable</string>

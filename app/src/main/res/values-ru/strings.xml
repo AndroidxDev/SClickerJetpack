@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Jetpack</string>
     <string name="clickBtn">Клик!</string>
     <!-- //BlurApp -->
     <string name="blur_settings">Настройка блюра</string>
