@@ -3,7 +3,7 @@
 ### **Blur Lab** — приложение для тонкой настройки эффектов размытия в интерфейсе Android.
 Позволяет управлять blur-эффектами, градиентным блюром и визуальными элементами UI в реальном времени.
 
-<img alt="logo" height="200" src="images/logo.png" width="200"/>
+<img alt="logo" height="210" src="images/logo.png" width="210"/>
 
  | ![SS1](images/SS1.png) | ![SS2](images/SS2.png)
 
