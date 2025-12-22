@@ -61,6 +61,8 @@
 
 By Android_xDev (telegram)
 
+This project is based on </br>
 [Kyant0 AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass?ysclid=mjh5n0cdtc366823349) </br>
 [zhanghai ComposePreference](https://github.com/zhanghai/ComposePreference?ysclid=mjh5odgb8b537839430) </br>
 [chrisbanes haze](https://github.com/chrisbanes/haze?ysclid=mjh5oylsfl815848546) </br>
+Licensed under Apache License 2.0
